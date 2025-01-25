@@ -16,31 +16,37 @@ const fadeIn = {
 export default function ContactPage() {
   return (
     <motion.div
-      className="container flex items-center justify-center py-24"
+      className="container py-24"
       initial="initial"
       animate="animate"
       variants={fadeIn}
     >
-      <Card className="w-full max-w-md">
+      <Card className="mx-auto max-w-md retro-card pixel-corners frosted-glass">
         <CardHeader>
-          <CardTitle>Contact Us</CardTitle>
+          <CardTitle className="retro-text text-2xl">Contact Us</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid w-full items-center gap-1.5">
-            <Label htmlFor="name">Name</Label>
-            <Input id="name" placeholder="Your name" />
+            <Label htmlFor="name" className="retro-text text-sm">
+              Name
+            </Label>
+            <Input id="name" placeholder="Your name" className="retro-input text-sm" />
           </div>
           <div className="grid w-full items-center gap-1.5">
-            <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" placeholder="Your email" />
+            <Label htmlFor="email" className="retro-text text-sm">
+              Email
+            </Label>
+            <Input id="email" type="email" placeholder="Your email" className="retro-input text-sm" />
           </div>
           <div className="grid w-full items-center gap-1.5">
-            <Label htmlFor="message">Message</Label>
-            <Textarea id="message" placeholder="Your message" />
+            <Label htmlFor="message" className="retro-text text-sm">
+              Message
+            </Label>
+            <Textarea id="message" placeholder="Your message" className="retro-input text-sm" />
           </div>
         </CardContent>
         <CardFooter>
-          <Button type="submit" className="w-full">
+          <Button type="submit" className="w-full retro-button pixel-corners">
             Send Message
           </Button>
         </CardFooter>
@@ -48,4 +54,3 @@ export default function ContactPage() {
     </motion.div>
   )
 }
-

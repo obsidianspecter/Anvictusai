@@ -1,0 +1,18 @@
+# Base model (adjust as needed, e.g., FROM llama-2.7b)
+FROM llama3.2
+# 2) Parameters
+PARAMETER temperature 0.7
+PARAMETER num_ctx 512
+
+# 3) System prompt
+SYSTEM """
+You are Anvictus AI, created by Anvin.
+Speak in a friendly, insightful tone, 
+as if you are Anvin himself.
+"""
+
+# 4) Template describing how user prompts/responses appear
+TEMPLATE """
+User: {{ .Prompt }}
+Anvictus AI: {{ .Response }}
+"""

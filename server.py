@@ -18,18 +18,16 @@ app = FastAPI()
 # CORS settings
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Replace with specific origin in production
+    allow_origins=["*"],  # In production, limit to your domain(s)
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Constants
 OLLAMA_API_URL = "http://localhost:11434/api/generate"
-MODEL_NAME = "deepseek-r1:7b"
-UPLOAD_DIR = "uploads"
+MODEL_NAME = "test1"
 
-# Ensure the upload directory exists
+UPLOAD_DIR = "uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 logger.info("Upload directory initialized: %s", UPLOAD_DIR)
 
@@ -37,26 +35,26 @@ logger.info("Upload directory initialized: %s", UPLOAD_DIR)
 async def upload_image(image: UploadFile = File(...), message: str = Form(...)):
     """
     Endpoint to handle image uploads and process them with DeepSeek-R1 7B model via Ollama.
+    Now with 'stream': false so the response is a single JSON object.
     """
     try:
-        # Save uploaded image
         file_path = os.path.join(UPLOAD_DIR, image.filename)
         with open(file_path, "wb") as buffer:
             shutil.copyfileobj(image.file, buffer)
         
         logger.info("Image successfully saved: %s", file_path)
 
-        # Convert image to base64
         with open(file_path, "rb") as img_file:
             base64_image = base64.b64encode(img_file.read()).decode("utf-8")
 
         logger.info("Image converted to base64")
 
-        # Send request to Ollama model
+        # Added "stream": False so Ollama returns a single JSON object
         payload = {
             "model": MODEL_NAME,
             "prompt": message,
-            "image": base64_image
+            "image": base64_image,
+            "stream": False  # <-- new line
         }
 
         logger.info("Sending request to Ollama API: %s", OLLAMA_API_URL)
@@ -66,6 +64,7 @@ async def upload_image(image: UploadFile = File(...), message: str = Form(...)):
             logger.error("Ollama API error: %s", response.text)
             raise HTTPException(status_code=500, detail="Error processing AI response")
 
+        # Now we can parse a single JSON object
         response_data = response.json()
         result = response_data.get("response", "No analysis available")
         
@@ -83,11 +82,14 @@ async def upload_image(image: UploadFile = File(...), message: str = Form(...)):
 async def chat(query: str = Form(...)):
     """
     Chat endpoint to interact with the DeepSeek-R1 7B model via Ollama.
+    Disables streaming so only one final JSON object is returned.
     """
     try:
+        # Also add "stream": False
         payload = {
             "model": MODEL_NAME,
-            "prompt": query
+            "prompt": query,
+            "stream": False  # <-- new line
         }
 
         logger.info("Sending chat request to Ollama API")
@@ -100,16 +102,9 @@ async def chat(query: str = Form(...)):
                 content={"error": f"Ollama API returned status {response.status_code}"}
             )
 
-        response_text = response.text.strip()
-        try:
-            response_data = json.loads(response_text)
-            ai_response = response_data.get("response", "No response available")
-        except json.JSONDecodeError:
-            logger.error(f"Failed to parse Ollama API response: {response_text}")
-            return JSONResponse(
-                status_code=500,
-                content={"error": "Failed to parse Ollama API response"}
-            )
+        # Now the response is a single JSON object, not multiple lines
+        response_data = response.json()
+        ai_response = response_data.get("response", "No response available")
         
         logger.info("Received chat response successfully")
         return {"response": ai_response}
@@ -138,4 +133,3 @@ async def root():
 if __name__ == "__main__":
     logger.info("Starting FastAPI server on http://0.0.0.0:8000")
     uvicorn.run(app, host="0.0.0.0", port=8000)
-
